@@ -1,4 +1,8 @@
 -- GigShield PostgreSQL Schema (Phase 1)
+-- Coverage constraints:
+-- 1) Income loss only (no health, life, accident, or vehicle repair coverage).
+-- 2) Weekly pricing and payout model aligned to gig-worker cycles.
+-- 3) Disruptions are external events (environmental + social) that halt deliveries.
 
 CREATE TABLE workers (
   id SERIAL PRIMARY KEY,

@@ -4,7 +4,7 @@
 Food delivery partners on Zomato and Swiggy lose income when deliveries stop because of extreme weather, curfews, or platform outages. The persona is a full-time delivery partner in a metro city who depends on daily earnings and needs instant income protection without paperwork.
 
 ## Solution Overview
-GigShield is an AI-powered parametric income insurance platform for delivery partners in India. It monitors external disruption signals (rain, heat, AQI, curfews, platform downtime) and automatically triggers payouts when thresholds are breached. No claims filing is required — payouts are calculated and disbursed instantly after automated fraud checks.
+GigShield is an AI-powered parametric **income protection** platform for delivery partners in India. It monitors external disruption signals (rain, heat, AQI, curfews, platform downtime) and automatically triggers payouts when thresholds are breached. No claims filing is required — payouts are calculated and disbursed instantly after automated fraud checks.
 
 ## Parametric Triggers & Thresholds
 | Trigger | Data Source | Threshold | Payout Hours |
@@ -30,9 +30,10 @@ Base tiers:
 - Premium: ₹79/week, ₹700/day, max ₹2,100
 
 ## Critical Constraints (From Challenge Brief)
-- Coverage is strictly for **income loss only**.
-- Excludes health, life, accident, and vehicle repair coverage.
-- Pricing and payout model must be **weekly**.
+- Coverage is strictly for **income loss only** during delivery disruptions.
+- Excludes **health, life, accident, and vehicle repair** coverage (no medical or repair payouts).
+- Pricing and payout model is **weekly** to align with gig-worker income cycles.
+- Disruptions are **external** events (environmental + social) that stop deliveries.
 
 ## AI/ML Integration Plan
 - Risk Engine: calculates risk score using disruption frequency, flood history, AQI averages, and earnings volatility.

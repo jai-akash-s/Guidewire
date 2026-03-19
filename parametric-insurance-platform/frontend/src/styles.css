@@ -74,6 +74,23 @@ body {
   gap: 12px;
 }
 
+.tab-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--panel-light);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.tab-link:hover {
+  transform: translateY(-1px);
+  background: #2a334a;
+}
+
 button {
   font-family: inherit;
   border: none;
@@ -160,38 +177,6 @@ button:focus-visible {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.75rem;
-}
-
-.narrative {
-  color: var(--text);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.narrative-steps {
-  display: grid;
-  gap: 10px;
-}
-
-.narrative-steps div {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  color: var(--muted);
-}
-
-.step-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(94, 228, 214, 0.2);
-  color: var(--accent);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
 }
 
 .card-row {
@@ -354,6 +339,38 @@ button:focus-visible {
   font-size: 0.95rem;
 }
 
+.narrative {
+  color: var(--text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.narrative-steps {
+  display: grid;
+  gap: 10px;
+}
+
+.narrative-steps div {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--muted);
+}
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(94, 228, 214, 0.2);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .pricing-grid {
   display: grid;
   gap: 16px;
@@ -482,6 +499,71 @@ button:focus-visible {
   animation: fadeIn 0.4s ease;
 }
 
+.login-panel {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(94, 228, 214, 0.18), rgba(108, 158, 255, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow);
+  margin-top: 20px;
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.login-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.login-form input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 17, 26, 0.8);
+  color: var(--text);
+}
+
+.login-form input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-form button {
+  justify-self: start;
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+.login-benefits {
+  display: grid;
+  gap: 12px;
+}
+
+.login-benefits h4 {
+  margin: 0 0 4px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -518,6 +600,9 @@ button:focus-visible {
   }
   .claim-actions {
     justify-content: flex-start;
+  }
+  .login-panel {
+    grid-template-columns: 1fr;
   }
 }
 
