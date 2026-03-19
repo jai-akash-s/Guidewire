@@ -1,0 +1,4 @@
+[
+  { "zone": "Mumbai", "curfew": false, "active": false, "duration_hours": 6 },
+  { "zone": "Delhi", "curfew": false, "active": false, "duration_hours": 8 }
+]

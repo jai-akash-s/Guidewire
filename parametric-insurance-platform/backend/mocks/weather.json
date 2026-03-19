@@ -1,0 +1,5 @@
+[
+  { "city": "Mumbai", "rain": { "1h": 2 }, "main": { "temp": 31 }, "visibility": 7000 },
+  { "city": "Delhi", "rain": { "1h": 0 }, "main": { "temp": 36 }, "visibility": 6000 },
+  { "city": "Bengaluru", "rain": { "1h": 1 }, "main": { "temp": 27 }, "visibility": 8000 }
+]

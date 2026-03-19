@@ -1,0 +1,4 @@
+[
+  { "zone": "Mumbai", "active": false, "severity": "MODERATE", "duration_hours": 4 },
+  { "zone": "Chennai", "active": false, "severity": "HIGH", "duration_hours": 6 }
+]

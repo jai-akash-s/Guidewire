@@ -1,0 +1,4 @@
+[
+  { "platform": "Zomato", "active": false, "duration_hours": 2 },
+  { "platform": "Swiggy", "active": false, "duration_hours": 1 }
+]

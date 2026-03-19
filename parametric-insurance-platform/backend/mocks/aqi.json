@@ -1,0 +1,5 @@
+[
+  { "city": "Mumbai", "aqi": 180 },
+  { "city": "Delhi", "aqi": 290 },
+  { "city": "Bengaluru", "aqi": 95 }
+]
