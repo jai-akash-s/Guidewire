@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { claims, policies, workers, disruptions, payouts } = require('../data');
+const { disruptions } = require('../data');
+const { db, mapWorker } = require('../db');
 const {
   calculatePayout,
   getZoneCentre,
@@ -9,13 +10,12 @@ const {
   claimsInWindow,
   daysBetween
 } = require('../utils');
-let nextClaimId = 1;
 
 router.post('/', (req, res) => {
   const { policy_id, disruption_id, disruption_hours = 4 } = req.body;
-  const policy = policies.find(p => p.id === Number(policy_id));
+  const policy = db.prepare('SELECT * FROM policies WHERE id = ?').get(Number(policy_id));
   if (!policy) return res.status(404).json({ error: 'policy not found' });
-  const worker = workers.find(w => w.id === policy.worker_id);
+  const worker = mapWorker(db.prepare('SELECT * FROM workers WHERE id = ?').get(policy.worker_id));
   if (!worker) return res.status(404).json({ error: 'worker not found' });
 
   const payoutAmount = calculatePayout({
@@ -25,30 +25,28 @@ router.post('/', (req, res) => {
     weekly_earnings: worker.avg_weekly_earnings
   });
 
-  const claim = {
-    id: nextClaimId++,
-    worker_id: worker.id,
-    policy_id: policy.id,
-    disruption_id: disruption_id || null,
-    fraud_score: 0.15,
-    fraud_flags: [],
-    status: 'APPROVED',
-    payout_amount_inr: payoutAmount,
-    auto_triggered: false,
-    created_at: new Date().toISOString()
-  };
+  const createdAt = new Date().toISOString();
+  const claimInsert = db.prepare(`
+    INSERT INTO claims (worker_id, policy_id, disruption_id, fraud_score, fraud_flags, status, payout_amount_inr, auto_triggered, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const result = claimInsert.run(
+    worker.id,
+    policy.id,
+    disruption_id || null,
+    0.15,
+    JSON.stringify([]),
+    'APPROVED',
+    payoutAmount,
+    0,
+    createdAt
+  );
+  const claim = db.prepare('SELECT * FROM claims WHERE id = ?').get(result.lastInsertRowid);
+  db.prepare(`
+    INSERT INTO payouts (claim_id, worker_id, amount_inr, upi_id, transaction_id, status, processed_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(claim.id, worker.id, payoutAmount, `worker${worker.id}@upi`, `TX${Date.now()}`, 'SUCCESS', createdAt);
 
-  claims.push(claim);
-  payouts.push({
-    id: payouts.length + 1,
-    claim_id: claim.id,
-    worker_id: worker.id,
-    amount_inr: payoutAmount,
-    upi_id: `worker${worker.id}@upi`,
-    transaction_id: `TX${Date.now()}`,
-    status: 'SUCCESS',
-    processed_at: new Date().toISOString()
-  });
   res.status(201).json(claim);
 });
 
@@ -62,7 +60,7 @@ router.post('/trigger', (req, res, next) => {
   return next();
 }, (req, res) => {
   const { zone, type, severity = 7, disruption_hours = 4, epicentre } = req.body;
-  const activePolicies = policies.filter(p => p.zone === zone && p.status === 'ACTIVE');
+  const activePolicies = db.prepare('SELECT * FROM policies WHERE zone = ? AND status = ?').all(zone, 'ACTIVE');
   if (!activePolicies.length) return res.status(404).json({ error: 'No active policies in zone' });
 
   const zoneCentre = epicentre || getZoneCentre(zone);
@@ -73,11 +71,12 @@ router.post('/trigger', (req, res, next) => {
 
   const createdClaims = activePolicies
     .map(policy => {
-      const worker = workers.find(w => w.id === policy.worker_id);
+      const worker = mapWorker(db.prepare('SELECT * FROM workers WHERE id = ?').get(policy.worker_id));
       if (!worker) return null;
 
-      const claimsThisWeek = claimsInWindow(claims, worker.id, startWeek, endWeek);
-      const claimsLast4Weeks = claimsInWindow(claims, worker.id, last4WeeksStart, now);
+      const allClaims = db.prepare('SELECT * FROM claims WHERE worker_id = ?').all(worker.id);
+      const claimsThisWeek = claimsInWindow(allClaims, worker.id, startWeek, endWeek);
+      const claimsLast4Weeks = claimsInWindow(allClaims, worker.id, last4WeeksStart, now);
       const avgWeeklyClaims = claimsLast4Weeks.length / 4;
 
       const fraudFlags = [];
@@ -86,7 +85,7 @@ router.post('/trigger', (req, res, next) => {
 
       const eventType = type || 'PARAMETRIC_EVENT';
       const windowStart = new Date(Date.now() - disruption_hours * 60 * 60 * 1000);
-      const duplicate = claims.find(
+      const duplicate = allClaims.find(
         c => c.worker_id === worker.id && c.event_type === eventType && new Date(c.created_at) >= windowStart
       );
       if (duplicate) return null;
@@ -130,34 +129,38 @@ router.post('/trigger', (req, res, next) => {
         weekly_earnings: worker.avg_weekly_earnings
       });
 
-      const claim = {
-        id: nextClaimId++,
-        worker_id: worker.id,
-        policy_id: policy.id,
-        disruption_id: null,
-        fraud_score: Number(fraudScore.toFixed(2)),
-        fraud_flags: fraudFlags,
-        status: recommendation === 'APPROVE' ? 'APPROVED' : recommendation === 'REJECT' ? 'REJECTED' : 'PENDING',
-        payout_amount_inr: recommendation === 'APPROVE' ? payoutAmount : 0,
-        auto_triggered: true,
-        event_type: eventType,
-        event_severity: severity,
-        created_at: new Date().toISOString()
-      };
-
-      claims.push(claim);
+      const createdAt = new Date().toISOString();
+      const insertResult = db.prepare(`
+        INSERT INTO claims (worker_id, policy_id, disruption_id, fraud_score, fraud_flags, status, payout_amount_inr, auto_triggered, event_type, event_severity, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        worker.id,
+        policy.id,
+        null,
+        Number(fraudScore.toFixed(2)),
+        JSON.stringify(fraudFlags),
+        recommendation === 'APPROVE' ? 'APPROVED' : recommendation === 'REJECT' ? 'REJECTED' : 'PENDING',
+        recommendation === 'APPROVE' ? payoutAmount : 0,
+        1,
+        eventType,
+        severity,
+        createdAt
+      );
+      const claim = db.prepare('SELECT * FROM claims WHERE id = ?').get(insertResult.lastInsertRowid);
 
       if (recommendation === 'APPROVE') {
-        payouts.push({
-          id: payouts.length + 1,
-          claim_id: claim.id,
-          worker_id: worker.id,
-          amount_inr: payoutAmount,
-          upi_id: `worker${worker.id}@upi`,
-          transaction_id: `TX${Date.now()}${worker.id}`,
-          status: 'SUCCESS',
-          processed_at: new Date().toISOString()
-        });
+        db.prepare(`
+          INSERT INTO payouts (claim_id, worker_id, amount_inr, upi_id, transaction_id, status, processed_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          claim.id,
+          worker.id,
+          payoutAmount,
+          `worker${worker.id}@upi`,
+          `TX${Date.now()}${worker.id}`,
+          'SUCCESS',
+          createdAt
+        );
       }
 
       return claim;
@@ -183,13 +186,14 @@ router.post('/trigger', (req, res, next) => {
 });
 
 router.get('/', (req, res) => {
-  const worker = req.worker;
-  res.json(claims.filter(c => c.worker_id === worker.id));
+  const result = db.prepare('SELECT * FROM claims WHERE worker_id = ? ORDER BY created_at DESC')
+    .all(req.worker.id);
+  res.json(result);
 });
 
 router.get('/:id', (req, res) => {
-  const worker = req.worker;
-  const claim = claims.find(c => c.id === Number(req.params.id) && c.worker_id === worker.id);
+  const claim = db.prepare('SELECT * FROM claims WHERE id = ? AND worker_id = ?')
+    .get(Number(req.params.id), req.worker.id);
   if (!claim) return res.status(404).json({ error: 'claim not found' });
   res.json(claim);
 });

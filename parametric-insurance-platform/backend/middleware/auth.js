@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { workers } = require('../data');
+const { db, mapWorker } = require('../db');
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_gigshield';
 
 function authMiddleware(req, res, next) {
@@ -10,7 +10,8 @@ function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    const worker = workers.find(w => w.id === payload.workerId);
+    const row = db.prepare('SELECT * FROM workers WHERE id = ?').get(payload.workerId);
+    const worker = mapWorker(row);
     if (!worker) return res.status(401).json({ error: 'Invalid worker' });
     req.worker = worker;
     next();

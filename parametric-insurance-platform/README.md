@@ -29,10 +29,40 @@ Base tiers:
 - Standard: ₹49/week, ₹500/day, max ₹1,500
 - Premium: ₹79/week, ₹700/day, max ₹2,100
 
+## GigShield Weekly — Hackathon Product Spec
+**Tagline:** Weekly income protection for delivery riders when disruptions stop work.
+
+**Weekly pricing only (no monthly or daily plans).**
+
+**Pricing tiers:**
+- Basic: ₹49/week, payout ₹800/day, cap ₹3,200/week
+- Standard: ₹69/week, payout ₹1,000/day, cap ₹4,000/week
+- Premium: ₹99/week, payout ₹1,200/day, cap ₹5,000/week
+
+**Covered disruptions (event → trigger → payout example):**
+- Extreme Heat → Temp > 40°C for 3+ hrs → ₹1,000/day
+- Heavy Rain / Flood → Rain > 15mm/hr or flood alert → ₹800–₹1,200/day
+- Severe Pollution → AQI > 400 → ₹1,000/day
+- Curfew / Strike → City curfew or verified strike → ₹1,000/day
+- Zone Closure → Police barricade / zone shutdown → ₹1,000/day
+- App Outage → Outage > 4 hrs → ₹800/day
+- GPS Failure → GPS error affects > 50% orders → ₹800/day
+- Infrastructure Halt → Roadblock / bridge closure → ₹1,000/day
+
+**Claims flow:**
+1. Trigger event detected
+2. Rider submits photo + GPS proof
+3. AI verifies disruption & location
+4. UPI payout within 24 hrs
+
+**Eligibility:** 20+ rides/week verified via platform data (Swiggy/Zomato).
+
+**Strict exclusions:** No health, life, accident, or vehicle repair coverage.
+
 ## Critical Constraints (From Challenge Brief)
 - Coverage is strictly for **income loss only** during delivery disruptions.
 - Excludes **health, life, accident, and vehicle repair** coverage (no medical or repair payouts).
-- Pricing and payout model is **weekly** to align with gig-worker income cycles.
+- **Weekly pricing only** (no monthly or daily plans) to align with gig-worker income cycles.
 - Disruptions are **external** events (environmental + social) that stop deliveries.
 
 ## AI/ML Integration Plan
@@ -77,3 +107,63 @@ React Native (Worker App)  React (Web Dashboards)
 - `frontend/`: React web dashboards (worker + admin)
 - `rn_app/`: React Native worker app
 - `docs/schema.sql`: PostgreSQL schema draft
+
+## Built With
+- React
+- React Native (Expo)
+- Node.js + Express
+- Python + FastAPI
+- SQLite (local persistence) / PostgreSQL (target schema)
+- Redis (planned cache)
+- Recharts
+- OpenWeatherMap API (weather)
+- WAQI API (air quality)
+
+## About the Project — GigShield Parametric AI
+
+### Inspiration
+Delivery workers lose income when rain, heat, curfews, or app outages stop their work. We were inspired by parametric insurance — where payouts are triggered automatically by measurable events. We wanted a system that protects income without paperwork and fits weekly earning cycles.
+
+### What it does
+GigShield Parametric AI is a **weekly-priced micro‑insurance product** for delivery gig workers in India. It covers **only income loss** from external disruptions (extreme heat, heavy rain/floods, severe pollution, curfews, strikes, platform outages, GPS failures, roadblocks). It **strictly excludes** health, life, accident, or vehicle repair coverage. Payouts are triggered automatically and sent to UPI within 24 hours.
+
+### How we built it
+- **React (Web)** for worker & admin portals  
+- **React Native** for worker onboarding and alerts  
+- **Node.js/Express** as API gateway and trigger engine  
+- **FastAPI (Python)** for risk, fraud, and payout engines  
+- **SQLite/PostgreSQL** for worker, policy, claim, and payout data  
+- **Mock disruption APIs** for weather, AQI, curfew, and outage signals  
+
+Weekly premium formula:
+\[
+\text{weekly\_premium} = \text{base\_tier} \times (1 + \frac{\text{risk\_score}}{200})
+\]
+
+Payout cap formula:
+\[
+\text{payout} = \min \left( \frac{\text{avg\_daily\_earnings}}{10} \times \text{hours} \times \text{tier\_multiplier},\; 0.6 \times \text{weekly\_earnings} \right)
+\]
+
+### Challenges we ran into
+- Translating real-world disruptions into clear parametric triggers  
+- Preventing fraud while keeping claims instant  
+- Aligning weekly pricing with actual gig‑worker earning cycles  
+- Keeping UI premium while avoiding feature overload  
+
+### Accomplishments that we're proud of
+- End‑to‑end **auto‑claim** flow with UPI payout simulation  
+- Realistic **fraud detection** rules and risk scoring  
+- A polished, premium UI for both workers and insurers  
+- Strict enforcement of **income‑only coverage**  
+
+### What we learned
+- Simpler, transparent triggers build user trust  
+- Weekly pricing feels more natural for gig workers than monthly plans  
+- AI validation adds speed without sacrificing fairness  
+
+### What's next for GigShield Parametric AI
+- Integrate live AQI + IMD weather feeds  
+- Add neighborhood‑level risk mapping  
+- Partner APIs for direct ride verification  
+- Launch pilot trials with delivery platforms  
